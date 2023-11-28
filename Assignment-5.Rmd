@@ -1,0 +1,71 @@
+---
+title: "Assignment-5"
+author: "Anjali Nangunuri"
+date: "2023-11-27"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+options(repos = c(CRAN = "https://cran.rstudio.com"))
+```
+
+```{r}
+# Load the data
+cereals <- read.csv("C:/Users/Anjali/Desktop/Anjali_FML_Assignment 5/Cereals.csv")
+
+# Remove rows with missing values
+cereals <- na.omit(cereals)
+```
+
+```{r}
+install.packages("cluster")
+install.packages("factoextra")
+install.packages("tidyverse")
+library(tidyverse)
+library(cluster)
+library(factoextra)
+
+# Step 2: Hierarchical Clustering
+# Identify numeric columns
+numeric_columns <- sapply(cereals, is.numeric)
+
+# Normalize only the numeric columns
+normalized_cereals <- scale(cereals[, numeric_columns])
+
+# Apply hierarchical clustering with Ward's method
+ward_cluster <- agnes(normalized_cereals)
+
+# Visualize dendrogram for Ward's method
+plot(ward_cluster, which.plots = 2, main = "Dendrogram - Ward's Method")
+```
+
+```{r}
+# Step 3: Cluster Stability and Healthy Cereals
+# Create cluster partitions A and B
+set.seed(123)
+partition_A <- sample(1:2, nrow(normalized_cereals), replace = TRUE)
+partition_B <- 3 - partition_A
+
+# Fit cluster on partition A
+cluster_A <- cutree(ward_cluster, k = 3)
+
+# Use cluster centroids from A to assign records in partition B
+cluster_B <- cluster_A[partition_B]
+
+# Assess cluster consistency
+consistency <- sum(cluster_A == cluster_B) / length(cluster_B)
+
+# Identify healthy cereals cluster
+# (Based on your analysis and specific criteria for 'healthy')
+# Example: Let's assume 'healthy' cereals have low sugar and high fiber
+healthy_cereals_cluster <- cluster_A[which(cereals$sugars < 5 & cereals$fiber > 5)]
+
+# Print or visualize the results
+cat("Cluster Consistency:", consistency, "\n")
+cat("Healthy Cereals Cluster:", healthy_cereals_cluster, "\n")
+```
+
